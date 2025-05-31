@@ -19,6 +19,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.platform.PlatformViewRegistry
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,7 @@ import kotlinx.coroutines.cancel
 
 private const val TAG = "CheckoutFlowPlugin"
 private const val CHANNEL_NAME = "checkout_flow_plugin"
+private const val CANNEL_VIEW = "card_form_view"
 
 sealed class CheckoutResult {
     data class Success(val message: String) : CheckoutResult()
@@ -47,6 +49,7 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     private var flowComponents: PaymentMethodComponent? = null
     private var cardComponents: PaymentMethodComponent? = null
     private var coroutineScope: CoroutineScope? = null
+    private lateinit var fPluginBinding: FlutterPlugin.FlutterPluginBinding
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine error: ${throwable.message}", throwable)
@@ -58,6 +61,7 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Attaching to engine")
+        fPluginBinding = flutterPluginBinding;
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
         channel.setMethodCallHandler(this)
         coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob() + exceptionHandler)
@@ -164,7 +168,14 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun updateComponents() {
         flowComponents = checkoutComponents?.create(ComponentName.Flow)
+
         cardComponents = checkoutComponents?.create(PaymentMethodName.Card)
-//        cardComponents?.provideView()
+        cardComponents?.let {
+            val factory = CardFormViewFactory(
+                fPluginBinding.binaryMessenger,
+                it
+            )
+            fPluginBinding.platformViewRegistry.registerViewFactory(CANNEL_VIEW, factory)
+        }
     }
 }
