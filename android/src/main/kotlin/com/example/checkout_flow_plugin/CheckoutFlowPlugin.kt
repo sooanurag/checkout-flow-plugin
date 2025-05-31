@@ -165,6 +165,6 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     private fun updateComponents() {
         flowComponents = checkoutComponents?.create(ComponentName.Flow)
         cardComponents = checkoutComponents?.create(PaymentMethodName.Card)
-        cardComponents?.provideView()
+//        cardComponents?.provideView()
     }
 }
