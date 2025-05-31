@@ -8,8 +8,10 @@ import com.checkout.components.interfaces.Environment
 import com.checkout.components.interfaces.api.CheckoutComponents
 import com.checkout.components.interfaces.api.PaymentMethodComponent
 import com.checkout.components.interfaces.component.CheckoutComponentConfiguration
+import com.checkout.components.interfaces.component.ComponentOption
 import com.checkout.components.interfaces.error.CheckoutError
 import com.checkout.components.interfaces.model.ComponentName
+import com.checkout.components.interfaces.model.PaymentMethodName
 import com.checkout.components.interfaces.model.PaymentSessionResponse
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -42,7 +44,8 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private lateinit var context: Context
     private var checkoutComponents: CheckoutComponents? = null
-    private var flow: PaymentMethodComponent? = null
+    private var flowComponents: PaymentMethodComponent? = null
+    private var cardComponents: PaymentMethodComponent? = null
     private var coroutineScope: CoroutineScope? = null
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -106,7 +109,7 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         coroutineScope?.launch(Dispatchers.IO) {
             try {
                 checkoutComponents = CheckoutComponentsFactory(config =  config as CheckoutComponentConfiguration).create()
-                createFlowComponent()
+                updateComponents()
 
                 // TODO: remove after implement further flow
                 withContext(Dispatchers.Main) {
@@ -159,7 +162,9 @@ class CheckoutFlowPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         )
     }
 
-    private fun createFlowComponent() {
-        flow = checkoutComponents?.create(ComponentName.Flow)
+    private fun updateComponents() {
+        flowComponents = checkoutComponents?.create(ComponentName.Flow)
+        cardComponents = checkoutComponents?.create(PaymentMethodName.Card)
+        cardComponents?.provideView()
     }
 }
