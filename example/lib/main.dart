@@ -41,8 +41,8 @@ class _MyAppState extends State<MyApp> {
       _formView =
          ( await _checkoutFlowPlugin.init(
             paymentRequest: psr,
-            publicKey: const String.fromEnvironment('CHECKOUT_PUBLIC_KEY', defaultValue: ''),
-            secretcKey: const String.fromEnvironment('CHECKOUT_SECRET_KEY', defaultValue: ''),
+            publicKey: '',
+            secretcKey: '',
             environment: Enviroment.SANDBOX
           )) ?? SizedBox.shrink();
     } catch (e) {
